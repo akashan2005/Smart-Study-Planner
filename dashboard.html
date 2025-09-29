@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Study Planner - Dashboard</title>
+  <style>
+    /* Fullscreen Video Background */
+    .bg-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #fff;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 30px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px) saturate(180%);
+      border-radius: 15px;
+      margin: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header .user-info {
+      font-size: 1.4em;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.7);
+    }
+    .header .menu-icon {
+      font-size: 2em;
+      cursor: pointer;
+      padding: 5px 10px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      transition: background 0.3s;
+    }
+    .header .menu-icon:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      height: 100%;
+      width: 0;
+      position: fixed;
+      z-index: 101;
+      top: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px) saturate(180%);
+      overflow-x: hidden;
+      transition: 0.5s;
+      padding-top: 60px;
+      box-shadow: -5px 0 15px rgba(0,0,0,0.3);
+      border-radius: 12px 0 0 12px;
+    }
+    .sidebar a {
+      padding: 20px 30px;
+      text-decoration: none;
+      font-size: 1.3em;
+      color: #fff;
+      display: block;
+      transition: 0.3s;
+    }
+    .sidebar a:hover {
+      background: rgba(255,255,255,0.25);
+      border-radius: 8px;
+    }
+    .sidebar .close-btn {
+      position: absolute;
+      top: 0;
+      right: 25px;
+      font-size: 36px;
+    }
+
+    /* Content */
+    .content {
+      padding: 30px;
+    }
+
+    .motivation-line {
+      text-align: center;
+      font-style: italic;
+      margin-bottom: 40px;
+      font-size: 1.2em;
+      color: #fff;
+      text-shadow: 1px 1px 5px rgba(0,0,0,0.7);
+      background: rgba(255, 255, 255, 0.15);
+      padding: 12px 20px;
+      border-radius: 12px;
+      display: inline-block;
+      backdrop-filter: blur(10px) saturate(180%);
+    }
+
+    /* Grid Container */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 columns */
+  grid-template-rows: repeat(3, 1fr);    /* 3 rows */
+  gap: 20px;                              /* spacing between items */
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.grid-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;               /* smaller padding */
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+  text-decoration: none;
+  color: #fff;
+  transition: transform 0.3s, box-shadow 0.3s;
+  backdrop-filter: blur(10px) saturate(180%);
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.grid-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
+  text-decoration: none;
+  color: #fff;
+  transition: transform 0.3s, box-shadow 0.3s;
+  backdrop-filter: blur(6px);
+}
+
+.grid-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.grid-item h3 {
+  margin-top: 15px;
+  font-size: 1.2em;
+  text-align: center;
+}
+
+.grid-item .icon {
+  font-size: 3em;
+}
+
+
+
+    /* Module gradients */
+    .tasks { background: linear-gradient(135deg, #f5576c, #f093fb); }
+    .subjects { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+    .calendar { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
+    .diary { background: linear-gradient(135deg, #667eea, #764ba2); }
+    .focus { background: linear-gradient(135deg, #ff9a9e, #fecff0); }
+    .reminders { background: linear-gradient(135deg, #fdcbf1, #e6dee9); }
+    .drawing { background: linear-gradient(135deg, #ffc796, #ff6b6b); }
+    .friends { background: linear-gradient(135deg, #84fab0, #8fd3f4); }
+    .sleep { background: linear-gradient(135deg, #b6a1f3, #d5c8fa); }
+    .exams { background: linear-gradient(135deg, #a8c0ff, #3f2b96); }
+    .dictionary { background: linear-gradient(135deg, #6a11cb, #2575fc); }
+    .games { background: linear-gradient(135deg, #f093fb, #f5576c); }
+
+  </style>
+</head>
+<body>
+  <!-- Video Background -->
+  <video autoplay muted loop class="bg-video">
+    <source src="Page.mp4" type="video/mp4">
+  </video>
+
+  <div class="header" id="header">
+    <div class="user-info">Welcome 😊, <span id="userName"></span>! Glad to see you again!</div>
+    <div class="menu-icon" onclick="openSidebar()">&#9776;</div>
+  </div>
+
+  <div id="mySidebar" class="sidebar">
+    <a href="javascript:void(0)" class="close-btn" onclick="closeSidebar()">&times;</a>
+    <a href="dashboard.html">🏠Home</a>
+    <a href="profile.html">👤Profile</a>
+    <a href="help.html">❓Help</a>
+    <a href="logout.html">🔓Logout</a>
+  </div>
+
+  <div class="content">
+    <div class="motivation-line" id="motivationLine"></div>
+
+    <div class="grid-container">
+      <a href="tasks.html" class="grid-item tasks"><span class="icon">&#x1F4DD;</span><h3>Tasks</h3></a>
+      <a href="subjects.html" class="grid-item subjects"><span class="icon">&#x1F4D3;</span><h3>Subjects & Notes</h3></a>
+      <a href="calendar.html" class="grid-item calendar"><span class="icon">&#x1F4C6;</span><h3>Calendar</h3></a>
+      <a href="diary.html" class="grid-item diary"><span class="icon">&#x1F4D2;</span><h3>Personal Diary</h3></a>
+      <a href="focus.html" class="grid-item focus"><span class="icon">&#x23F1;</span><h3>Focus Mode</h3></a>
+      <a href="reminders.html" class="grid-item reminders"><span class="icon">&#x1F514;</span><h3>Reminders</h3></a>
+      <a href="drawing.html" class="grid-item drawing"><span class="icon">&#x1F58C;</span><h3>Drawing & Painting</h3></a>
+      <a href="friends.html" class="grid-item friends"><span class="icon">&#x1F465;</span><h3>Friends Connect</h3></a>
+      <a href="sleep.html" class="grid-item sleep"><span class="icon">&#x1F634;</span><h3>Sleep Time</h3></a>
+      <a href="exams.html" class="grid-item exams"><span class="icon">&#x1F4C4;</span><h3>Exams List</h3></a>
+      <a href="dictionary.html" class="grid-item dictionary"><span class="icon">&#x1F4DA;</span><h3>Dictionary</h3></a>
+      <a href="games.html" class="grid-item games"><span class="icon">&#x1F3AE;</span><h3>Games</h3></a>
+    </div>
+  </div>
+
+  <script>
+    const motivations = [
+      "Believe you can and you're halfway there. 🧠",
+      "The secret of getting ahead is getting started. 🚀",
+      "Don't watch the clock; do what it does. Keep going. ⏳",
+      "Success is the sum of small efforts, repeated daily. 💪",
+      "The future belongs to those who believe in the beauty of their dreams. ✨",
+      "Your only limit is your mind. 🌟",
+      "Push yourself, because no one else is going to do it for you. ⚡",
+      "The best way to predict the future is to create it. 💡",
+      "Start where you are. Use what you have. Do what you can. 🌱",
+      "A little progress each day adds up to big results. 📈"
+    ];
+
+    function checkUser() {
+      const username = localStorage.getItem('planner_username');
+      if (!username) window.location.href = 'index.html';
+      else document.getElementById('userName').textContent = username;
+    }
+
+    function openSidebar() { document.getElementById("mySidebar").style.width = "250px"; }
+    function closeSidebar() { document.getElementById("mySidebar").style.width = "0"; }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      checkUser();
+      const randomMotivation = motivations[Math.floor(Math.random() * motivations.length)];
+      document.getElementById('motivationLine').textContent = randomMotivation;
+    });
+  </script>
+</body>
+</html>

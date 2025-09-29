@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Study Planner - Games Hub</title>
+<style>
+body, html { margin:0; padding:0; font-family: Arial, sans-serif; height:100%; }
+video.bg-video { position: fixed; top:0; left:0; width:100%; height:100%; object-fit: cover; z-index:-1; }
+
+.header { display:flex; justify-content: space-between; align-items:center; padding:10px 20px; color:#fff; background:rgba(0,0,0,0.5);}
+.menu-icon { cursor:pointer; font-size:28px; }
+.sidebar { width:0; position:fixed; top:0; left:0; height:100%; background:#111; overflow-x:hidden; transition:0.3s; padding-top:60px; z-index:10; }
+.sidebar a { padding:10px 20px; text-decoration:none; font-size:20px; color:#fff; display:block; transition:0.3s; }
+.sidebar a:hover { background:#575757; }
+.close-btn { position:absolute; top:10px; right:20px; font-size:36px; }
+
+.content { margin:20px auto; max-width:1200px; padding:20px; background:rgba(255,255,255,0.85); border-radius:15px; box-shadow:0 0 20px rgba(0,0,0,0.3);}
+h1 { text-align:center; font-size:36px; margin-bottom:20px; color:#0077b6; text-shadow: 2px 2px #023e8a; }
+
+/* Game selection buttons */
+.game-tabs { display:flex; justify-content:center; margin-bottom:20px; flex-wrap:wrap;}
+.game-tabs button { margin:5px; padding:10px 20px; font-size:18px; border:none; border-radius:10px; cursor:pointer; background:#0077b6; color:#fff; }
+.game-tabs button:hover { background:#023e8a; }
+.game-card { display:none; background: rgba(255,255,255,0.95); border-radius:15px; padding:15px; box-shadow:0 0 10px rgba(0,0,0,0.3); margin-bottom:20px; }
+
+/* Tic Tac Toe */
+.ttt-grid { display:grid; grid-template-columns: repeat(3, 100px); grid-gap:5px; justify-content:center; margin:auto; }
+.ttt-grid button { width:100px; height:100px; font-size:32px; cursor:pointer; }
+
+/* Sudoku */
+.sudoku-grid { display:grid; grid-template-columns: repeat(9, 40px); grid-gap:2px; justify-content:center; margin:auto; }
+.sudoku-grid input { width:38px; height:38px; text-align:center; font-size:18px; }
+
+/* Wordle */
+.wordle-container { text-align:center; }
+.wordle-row { display:flex; justify-content:center; margin:3px 0; }
+.wordle-cell { width:40px; height:40px; border:2px solid #777; margin:1px; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:24px; text-transform:uppercase; }
+
+</style>
+</head>
+<body>
+
+<video autoplay muted loop class="bg-video">
+    <source src="Page.mp4" type="video/mp4">
+</video>
+
+<div class="header">
+    <div class="user-info">Welcome, <span id="userName"></span>!</div>
+    <div class="menu-icon" onclick="openSidebar()">&#9776;</div>
+</div>
+
+<div id="mySidebar" class="sidebar">
+    <a href="javascript:void(0)" class="close-btn" onclick="closeSidebar()">&times;</a>
+    <a href="dashboard.html">Home</a>
+    <a href="#" onclick="toggleTheme()">Theme</a>
+    <a href="profile.html">Profile</a>
+    <a href="help.html">Help</a>
+</div>
+
+<div class="content">
+    <h1>🎮 Fun Brain Games Hub 🎮</h1>
+
+    <div class="game-tabs">
+        <button onclick="showGame('ticTacToeCard')">Tic Tac Toe</button>
+        <button onclick="showGame('sudokuCard')">Sudoku</button>
+        <button onclick="showGame('wordleCard')">Wordle</button>
+        
+    </div>
+
+    <!-- Game Cards -->
+    <div id="ticTacToeCard" class="game-card"></div>
+    <div id="sudokuCard" class="game-card"></div>
+    <div id="wordleCard" class="game-card"></div>
+
+    <a href="dashboard.html" class="back-home">⬅ Back to Home</a>
+</div>
+
+<script>
+// User
+document.addEventListener('DOMContentLoaded',()=>{
+    document.getElementById('userName').textContent = localStorage.getItem('planner_username')||"Student";
+    initTicTacToe();
+    initSudoku();
+    initWordle();
+});
+
+// Show selected game
+function showGame(id){
+    const cards = document.querySelectorAll('.game-card');
+    cards.forEach(c=>c.style.display='none');
+    document.getElementById(id).style.display='block';
+}
+
+// Sidebar
+function openSidebar(){ document.getElementById("mySidebar").style.width="250px"; }
+function closeSidebar(){ document.getElementById("mySidebar").style.width="0"; }
+function toggleTheme(){ document.body.classList.toggle('dark-theme'); }
+
+/* ---------- Tic Tac Toe ---------- */
+function initTicTacToe(){
+    const container=document.getElementById('ticTacToeCard');
+    const grid=document.createElement('div'); grid.className='ttt-grid';
+    const cells=Array(9).fill('');
+    let player='X';
+    function checkWinner(){
+        const combos=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+        for(const [a,b,c] of combos){ if(cells[a]&&cells[a]===cells[b]&&cells[a]===cells[c]) return cells[a]; }
+        return cells.includes('')? null:'Draw';
+    }
+    function computerMove(){
+        const empty=cells.map((v,i)=>v===''?i:null).filter(v=>v!==null);
+        for(const i of empty){ cells[i]='O'; if(checkWinner()==='O'){grid.children[i].textContent='O'; return;} cells[i]=''; }
+        for(const i of empty){ cells[i]='X'; if(checkWinner()==='X'){cells[i]='O'; grid.children[i].textContent='O'; return;} cells[i]=''; }
+        const move = empty[Math.floor(Math.random()*empty.length)]; cells[move]='O'; grid.children[move].textContent='O';
+    }
+    function resetBoard(){ cells.fill(''); Array.from(grid.children).forEach(c=>c.textContent=''); }
+    for(let i=0;i<9;i++){
+        const btn=document.createElement('button');
+        btn.addEventListener('click',()=>{
+            if(cells[i]===''){ cells[i]='X'; btn.textContent='X';
+            let result=checkWinner(); if(result){ setTimeout(()=>{alert(result==='Draw'?'Draw!':'Winner: '+result); resetBoard();},50); return;}
+            computerMove(); result=checkWinner(); if(result){ setTimeout(()=>{alert(result==='Draw'?'Draw!':'Winner: '+result); resetBoard();},50);}}});
+        grid.appendChild(btn);
+    }
+    container.appendChild(grid);
+}
+
+/* ---------- Sudoku ---------- */
+function initSudoku(){
+    const container=document.getElementById('sudokuCard');
+    const grid=document.createElement('div'); grid.className='sudoku-grid';
+    const puzzle=[5,3,0,0,7,0,0,0,0,6,0,0,1,9,5,0,0,0,0,9,8,0,0,0,0,6,0,8,0,0,0,6,0,0,0,3,4,0,0,8,0,3,0,0,1,7,0,0,0,2,0,0,0,6,0,6,0,0,0,0,2,8,0,0,0,0,4,1,9,0,0,5,0,0,0,0,8,0,0,7,9];
+    for(let i=0;i<81;i++){ const input=document.createElement('input'); input.type='number'; input.min='1'; input.max='9';
+        if(puzzle[i]!==0){ input.value=puzzle[i]; input.disabled=true; input.style.background='#ddd'; }
+        grid.appendChild(input);
+    }
+    container.appendChild(grid);
+    const btn=document.createElement('button'); btn.textContent='Check Solution'; btn.style.display='block'; btn.style.margin='10px auto';
+    btn.addEventListener('click',()=>{
+        const inputs=grid.querySelectorAll('input'); let correct=true;
+        for(let i=0;i<81;i++){ if(inputs[i].value!=puzzle[i] && puzzle[i]!==0){ correct=false; break; } }
+        alert(correct?'All correct! Well done.':'Some numbers are incorrect. Keep trying.');
+    });
+    container.appendChild(btn);
+}
+
+/* ---------- Wordle ---------- */
+function initWordle(){
+    const container=document.getElementById('wordleCard');
+    const words=['APPLE','BRAIN','HOUSE','PLANT','LIGHT','MOUSE','WATER','NIGHT','SOUND','HEART'];
+    const target=words[Math.floor(Math.random()*words.length)];
+    let attempt=0,maxAttempts=6;
+    const rows=[];
+    const inputRow=document.createElement('div'); inputRow.style.textAlign='center';
+    const inputField=document.createElement('input'); inputField.maxLength=5; inputField.style.textTransform='uppercase';
+    const submitBtn=document.createElement('button'); submitBtn.textContent='Guess';
+    inputRow.appendChild(inputField); inputRow.appendChild(submitBtn);
+    container.appendChild(inputRow);
+    for(let i=0;i<maxAttempts;i++){
+        const row=document.createElement('div'); row.className='wordle-row';
+        for(let j=0;j<5;j++){ const cell=document.createElement('div'); cell.className='wordle-cell'; row.appendChild(cell);}
+        container.appendChild(row); rows.push(row);
+    }
+    submitBtn.addEventListener('click',checkWord);
+    inputField.addEventListener('keypress',e=>{if(e.key==='Enter') checkWord();});
+    function checkWord(){
+        const guess=inputField.value.toUpperCase();
+        if(guess.length!==5){ alert('Enter 5-letter word'); return;}
+        if(attempt>=maxAttempts) return;
+        const rowCells=rows[attempt].children;
+        for(let i=0;i<5;i++){
+            rowCells[i].textContent=guess[i];
+            if(guess[i]===target[i]) rowCells[i].style.background='green';
+            else if(target.includes(guess[i])) rowCells[i].style.background='yellow';
+            else rowCells[i].style.background='gray';
+            rowCells[i].style.color='white';
+        }
+        attempt++; inputField.value='';
+        if(guess===target){ setTimeout(()=>alert('🎉 Correct! You guessed the word.'),50);}
+        else if(attempt===maxAttempts){ setTimeout(()=>alert('Game over! Word was '+target),50);}
+    }
+}
+
+</script>
+
+</body>
+</html>

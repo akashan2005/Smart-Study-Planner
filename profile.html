@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Study Planner - Profile</title>
+<style>
+body, html { margin:0; padding:0; font-family: Arial, sans-serif; height:100%; }
+video.bg-video { position: fixed; top:0; left:0; width:100%; height:100%; object-fit: cover; z-index:-1; }
+
+.header { display:flex; justify-content: space-between; align-items:center; padding:10px 20px; color:#fff; background:rgba(0,0,0,0.5);}
+.user-info { font-weight:bold; font-size:18px; }
+
+.content { margin:20px auto; max-width:600px; padding:20px; background:rgba(255,255,255,0.85); border-radius:15px; box-shadow:0 0 20px rgba(0,0,0,0.3);}
+h1 { text-align:center; font-size:32px; margin-bottom:20px; color:#0077b6; text-shadow: 1px 1px #023e8a; }
+
+.profile-form label { display:block; margin-top:10px; font-weight:bold; }
+.profile-form input, .profile-form select, .profile-form textarea { width:100%; padding:8px; margin-top:5px; border-radius:5px; border:1px solid #ccc; }
+
+button { margin-top:15px; padding:10px 15px; font-size:16px; border:none; border-radius:8px; background:#0077b6; color:#fff; cursor:pointer; }
+button:hover { background:#023e8a; }
+
+.back-home { display:inline-block; margin-top:10px; padding:8px 15px; background:#0077b6; color:#fff; border-radius:8px; text-decoration:none; }
+.back-home:hover { background:#023e8a; }
+</style>
+</head>
+<body>
+
+<video autoplay muted loop class="bg-video">
+    <source src="Page.mp4" type="video/mp4">
+</video>
+
+<div class="header">
+    <div class="user-info">Welcome, <span id="userName"></span>!</div>
+</div>
+
+<div class="content">
+    <h1>My Profile</h1>
+    <form class="profile-form">
+        <label for="name">Name:</label>
+        <input type="text" id="name" placeholder="Enter your full name">
+
+        <label for="dob">Date of Birth:</label>
+        <input type="date" id="dob">
+
+        <label for="place">Place:</label>
+        <input type="text" id="place" placeholder="City, Country">
+
+        <label for="education-level">Education Level:</label>
+        <select id="education-level">
+            <option value="">Select...</option>
+            <option value="school">Schooling</option>
+            <option value="college">College</option>
+        </select>
+
+        <label for="school-class" id="school-label" style="display:none;">Class & Group:</label>
+        <input type="text" id="school-class" placeholder="e.g., 10th Grade, Science Group" style="display:none;">
+
+        <label for="college-details" id="college-label" style="display:none;">Branch & Course:</label>
+        <input type="text" id="college-details" placeholder="e.g., Computer Science, B.Tech" style="display:none;">
+
+        <label for="hobbies">Hobbies:</label>
+        <textarea id="hobbies" rows="3" placeholder="Enter your hobbies (e.g., reading, coding, painting)"></textarea>
+        
+        <button type="submit">Save Profile</button>
+    </form>
+
+    <a href="dashboard.html" class="back-home">⬅ Back to Home</a>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const username = localStorage.getItem('planner_username');
+    if (username) { document.getElementById('userName').textContent = username; }
+
+    const educationLevel = document.getElementById('education-level');
+    educationLevel.addEventListener('change', (e) => {
+        document.getElementById('school-label').style.display = 'none';
+        document.getElementById('school-class').style.display = 'none';
+        document.getElementById('college-label').style.display = 'none';
+        document.getElementById('college-details').style.display = 'none';
+
+        if (e.target.value === 'school') {
+            document.getElementById('school-label').style.display = 'block';
+            document.getElementById('school-class').style.display = 'block';
+        } else if (e.target.value === 'college') {
+            document.getElementById('college-label').style.display = 'block';
+            document.getElementById('college-details').style.display = 'block';
+        }
+    });
+
+    document.querySelector('.profile-form').addEventListener('submit', e => {
+        e.preventDefault();
+        const profileData = {
+            name: document.getElementById('name').value,
+            dob: document.getElementById('dob').value,
+            place: document.getElementById('place').value,
+            education: document.getElementById('education-level').value,
+            schoolClass: document.getElementById('school-class').value,
+            collegeDetails: document.getElementById('college-details').value,
+            hobbies: document.getElementById('hobbies').value
+        };
+        localStorage.setItem('planner_profile', JSON.stringify(profileData));
+        alert('Profile saved successfully!');
+    });
+});
+</script>
+
+</body>
+</html>

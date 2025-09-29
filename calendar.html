@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Smart Study Planner - Grid Calendar</title>
+<style>
+  :root{
+    --card-bg: rgba(0,0,0,0.4); /* More transparent */
+    --accent: #9d4edd;
+    --accent-2: #667eea;
+    --text: #fff;
+    --muted: rgba(255,255,255,0.85);
+    --danger: #ff4d4d;
+  }
+
+  html,body{
+    height:100%;
+    margin:0;
+    font-family:Inter, system-ui, Arial, sans-serif;
+    background:transparent; /* Changed from #111 to transparent */
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* video background */
+  .bg-video{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    z-index:-2;
+  }
+  /* subtle overlay so content is readable */
+  .bg-overlay{
+    position:fixed;
+    inset:0;
+    background:linear-gradient(180deg,rgba(0,0,0,0.4),rgba(0,0,0,0.7)); /* Darker overlay for better readability */
+    z-index:-1;
+  }
+
+  .app {
+    min-height:100%;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    padding:18px;
+    box-sizing:border-box;
+  }
+
+  /* header */
+  .header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    background:var(--card-bg);
+    padding:12px 16px;
+    border-radius:10px;
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.1); /* Added border for definition */
+  }
+  .header .left{display:flex;align-items:center;gap:14px;}
+  .brand{font-weight:700;font-size:1.05rem;color:var(--text)}
+  .nav-controls{display:flex;gap:8px;align-items:center}
+  .nav-controls button{
+    background:transparent;border:1px solid rgba(255,255,255,0.12);color:var(--text);padding:6px 10px;border-radius:8px;cursor:pointer;
+    transition: all 0.2s ease;
+  }
+  .nav-controls button:hover{transform:translateY(-2px); background:rgba(255,255,255,0.05);}
+  #currentMonthYear{font-weight:700;margin:0 8px;font-size:1.05rem}
+
+  /* connect with google (selectable text) */
+  .connect-google{
+    padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px dashed rgba(255,255,255,0.06);
+    color:var(--muted);cursor:text;user-select:text; /* intentionally selectable */
+  }
+
+  /* Back to Dashboard button */
+  .back-btn {
+    background: var(--accent-2);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+  }
+  .back-btn:hover {
+    background: #5a6fd8;
+    transform: translateY(-2px);
+  }
+
+  /* calendar container */
+  .calendar-wrap{
+    background:var(--card-bg);
+    padding:18px;
+    border-radius:12px;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    overflow:auto;
+    box-shadow:0 6px 30px rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.1); /* Added border for definition */
+  }
+
+  .weekdays{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:6px;
+    color:var(--muted);
+    font-weight:600;
+    user-select:none;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:8px;
+  }
+
+  .day {
+    min-height:100px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04)); /* Slightly more visible */
+    border-radius:10px;
+    padding:8px;
+    box-sizing:border-box;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    border:1px solid rgba(255,255,255,0.08); /* Slightly more visible border */
+    position:relative;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .day:hover{transform:translateY(-4px);box-shadow:0 10px 30px rgba(0,0,0,0.45)}
+  .other-month{opacity:0.38}
+  .day .date-number{font-weight:700;font-size:0.95rem}
+  .day.sunday .date-number{color:var(--danger)} /* sunday red */
+
+  /* events area inside day cell */
+  .events-wrap{display:flex;flex-direction:column;gap:6px;overflow:auto}
+  .event-pill{
+    display:inline-block;padding:4px 8px;border-radius:999px;font-size:0.78rem;color:#fff;max-width:100%;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;border:1px solid rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+  }
+  .event-pill:hover {
+    transform: scale(1.03);
+    filter: brightness(1.1);
+  }
+  .add-day-btn{
+    margin-top:auto;
+    font-size:0.83rem;
+    color:var(--muted);
+    background:transparent;border:none;cursor:pointer;padding:6px 0;text-align:left;
+    transition: all 0.2s ease;
+  }
+  .add-day-btn:hover {
+    color: var(--accent);
+  }
+
+  /* footer controls */
+  .footer-controls{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .legend{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:0.9rem}
+  .legend .dot{width:12px;height:12px;border-radius:50%;display:inline-block}
+
+  /* modal */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:50}
+  .modal{width:100%;max-width:720px;background:#fff;color:#111;border-radius:12px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,0.6)}
+  .modal h3{margin:0 0 10px 0}
+  .modal .row{display:flex;gap:8px;margin-bottom:10px}
+  .modal input[type="text"], .modal textarea, .modal input[type="color"]{
+    padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.12);flex:1;box-sizing:border-box;
+  }
+  .modal textarea{min-height:90px;resize:vertical}
+  .modal .event-list{max-height:220px;overflow:auto;border-top:1px solid rgba(0,0,0,0.06);margin-top:10px;padding-top:10px}
+  .event-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px;border-radius:8px}
+  .event-controls{display:flex;gap:8px;align-items:center}
+
+  .btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;transition: all 0.2s ease;}
+  .btn:hover{transform:translateY(-2px); filter: brightness(1.1);}
+  .btn.ghost{background:transparent;border:1px solid rgba(0,0,0,0.06);color:#111}
+  .btn.danger{background:var(--danger)}
+
+  /* small screens */
+  @media (max-width:720px){
+    .day{min-height:90px}
+    .modal{margin:16px}
+    .header{flex-direction:column;align-items:flex-start;gap:8px}
+    .header .right {
+      width: 100%;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .back-btn {
+      margin-top: 8px;
+      order: -1;
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+</head>
+<body>
+  <!-- background video -->
+  <video class="bg-video" autoplay muted loop playsinline id="bgVideo">
+    <!-- First try: Local Page.mp4 file -->
+    <source src="Page.mp4" type="video/mp4">
+    <!-- Fallback: Online video if local file not found -->
+    <source src="https://assets.codepen.io/1468070/Page.mp4" type="video/mp4">
+    <!-- Final fallback message -->
+    Your browser does not support the video tag.
+  </video>
+  <div class="bg-overlay"></div>
+
+  <div class="app">
+    <div class="header" id="header">
+      <div class="left">
+        <div class="brand">📅Calendar</div>
+        <div class="nav-controls">
+          <button id="prevBtn" title="Previous month">&lt;</button>
+          <div id="currentMonthYear"></div>
+          <button id="nextBtn" title="Next month">&gt;</button>
+          <button id="todayBtn" title="Today" style="margin-left:8px">Today</button>
+        </div>
+      </div>
+
+      <div class="right" style="display:flex;gap:12px;align-items:center">
+        <a href="dashboard.html" class="back-btn" id="backToDashboardBtn">
+          ← Back to Dashboard
+        </a>
+        <div class="connect-google" title="Connect with Google (UI only, selectable text)">
+          Connect with Google (selectable text)
+        </div>
+        <div style="color:var(--muted);font-size:0.95rem">Welcome, <span id="userName">You</span></div>
+      </div>
+    </div>
+
+    <div class="calendar-wrap">
+      <div class="weekdays" aria-hidden="true">
+        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+      </div>
+
+      <div id="calendarGrid" class="grid" aria-live="polite"></div>
+
+      <div class="footer-controls">
+        <div class="legend">
+          <span style="opacity:0.8">Legend:</span>
+          <span class="dot" style="background:#9d4edd"></span><span>Event</span>
+          <span class="dot" style="background:#ffb86b"></span><span>Event (other color)</span>
+        </div>
+        <div style="color:var(--muted)">All data stored locally (no backend)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal (hidden initially) -->
+  <div id="modalBackdrop" class="modal-backdrop" style="display:none">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h3 id="modalTitle">Events on <span id="modalDateReadable"></span></h3>
+
+      <div class="row">
+        <input id="eventText" type="text" placeholder="Event text (title)" />
+        <input id="eventColor" type="color" value="#9d4edd" style="width:70px" />
+        <button class="btn" id="addEventBtn">Add</button>
+      </div>
+
+      <div class="row">
+        <textarea id="eventNote" placeholder="Optional description / details (press Add to save)"></textarea>
+      </div>
+
+      <div>
+        <strong>Existing events</strong>
+        <div class="event-list" id="eventList"></div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+        <button class="btn ghost" id="closeModalBtn">Close</button>
+        <button class="btn danger" id="clearAllBtn">Delete All for date</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* Calendar full client-side implementation with localStorage events
+   Event object shape:
+   {
+     id: <number>,
+     date: 'YYYY-MM-DD',
+     title: '...'
+     note: '...',
+     color: '#rrggbb',
+     createdAt: timestamp
+   }
+*/
+
+const calendarGrid = document.getElementById('calendarGrid');
+const currentMonthYear = document.getElementById('currentMonthYear');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const todayBtn = document.getElementById('todayBtn');
+const backToDashboardBtn = document.getElementById('backToDashboardBtn');
+const bgVideo = document.getElementById('bgVideo');
+
+const modalBackdrop = document.getElementById('modalBackdrop');
+const modalDateReadable = document.getElementById('modalDateReadable');
+const eventText = document.getElementById('eventText');
+const eventNote = document.getElementById('eventNote');
+const eventColor = document.getElementById('eventColor');
+const addEventBtn = document.getElementById('addEventBtn');
+const eventList = document.getElementById('eventList');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const clearAllBtn = document.getElementById('clearAllBtn');
+
+let view = { year: null, month: null }; // month: 0-indexed
+let selectedDateIso = null; // 'YYYY-MM-DD'
+
+// Video error handling
+bgVideo.addEventListener('error', function() {
+  console.log('Local video failed to load, using fallback');
+  // The browser will automatically try the next source in the list
+});
+
+// utility
+function toISO(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth()+1).padStart(2,'0');
+  const d = String(date.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+function fromISO(s) {
+  const [y,m,d] = s.split('-').map(Number);
+  return new Date(y,m-1,d);
+}
+function formatReadable(iso) {
+  const d = fromISO(iso);
+  return d.toLocaleDateString(undefined, {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+}
+
+// localStorage helpers
+const STORAGE_KEY = 'planner_calendar_events';
+function loadAllEvents(){
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  } catch(e){ return []; }
+}
+function saveAllEvents(arr){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+}
+function eventsForDate(iso){
+  return loadAllEvents().filter(e => e.date === iso).sort((a,b)=>a.createdAt - b.createdAt);
+}
+
+// render calendar for a given year/month
+function renderCalendar(year, month){
+  calendarGrid.innerHTML = '';
+  currentMonthYear.textContent = new Date(year, month, 1).toLocaleDateString(undefined, {month:'long', year:'numeric'});
+
+  // first day of month
+  const first = new Date(year, month, 1);
+  const startDay = first.getDay(); // 0 = Sunday
+  // how many days in month
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  // previous month days
+  const prevDays = new Date(year, month, 0).getDate();
+
+  // we display 6 weeks (6*7 = 42 cells)
+  const totalCells = 42;
+  for(let i=0;i<totalCells;i++){
+    // index mapping: cell 0 corresponds to (prevMonth last - startDay + 1) if i < startDay
+    let cellDate, isOther=false;
+    if (i < startDay) {
+      // previous month
+      const d = prevDays - (startDay - 1 - i);
+      const dObj = new Date(year, month-1, d);
+      cellDate = toISO(dObj);
+      isOther = true;
+    } else {
+      const dayNum = i - startDay + 1;
+      if (dayNum > daysInMonth) {
+        // next month
+        const d = dayNum - daysInMonth;
+        const dObj = new Date(year, month+1, d);
+        cellDate = toISO(dObj);
+        isOther = true;
+      } else {
+        const dObj = new Date(year, month, dayNum);
+        cellDate = toISO(dObj);
+      }
+    }
+
+    const dObj = fromISO(cellDate);
+    const dayEl = document.createElement('div');
+    dayEl.className = 'day';
+    if (isOther) dayEl.classList.add('other-month');
+    if (dObj.getDay() === 0) dayEl.classList.add('sunday');
+
+    // day header
+    const dateNumber = document.createElement('div');
+    dateNumber.className = 'date-number';
+    dateNumber.textContent = dObj.getDate();
+    dayEl.appendChild(dateNumber);
+
+    // events container
+    const eventsWrap = document.createElement('div');
+    eventsWrap.className = 'events-wrap';
+    // show up to 3 previews, more indicated by +n
+    const evs = eventsForDate(cellDate);
+    evs.slice(0,3).forEach(ev=>{
+      const pill = document.createElement('div');
+      pill.className = 'event-pill';
+      pill.style.background = ev.color || '#9d4edd';
+      pill.title = ev.title;
+      pill.textContent = ev.title;
+      pill.onclick = (e) => {
+        e.stopPropagation();
+        openModalForDate(cellDate, ev.id); // open modal and focus on this event for edit
+      };
+      eventsWrap.appendChild(pill);
+    });
+    if (evs.length > 3) {
+      const more = document.createElement('div');
+      more.style.color = 'var(--muted)';
+      more.style.fontSize = '0.85rem';
+      more.textContent = `+${evs.length - 3} more`;
+      eventsWrap.appendChild(more);
+    }
+
+    dayEl.appendChild(eventsWrap);
+
+    // add button to open modal to add event
+    const addBtn = document.createElement('button');
+    addBtn.className = 'add-day-btn';
+    addBtn.textContent = 'Add / View';
+    addBtn.onclick = (e) => {
+      e.stopPropagation();
+      openModalForDate(cellDate);
+    };
+    dayEl.appendChild(addBtn);
+
+    // click on cell also opens modal
+    dayEl.onclick = () => openModalForDate(cellDate);
+
+    calendarGrid.appendChild(dayEl);
+  }
+}
+
+// navigation
+function goToMonth(year, month){
+  view.year = year; view.month = month;
+  renderCalendar(year, month);
+}
+prevBtn.addEventListener('click', ()=> {
+  let y = view.year, m = view.month - 1;
+  if (m < 0) { m = 11; y -= 1; }
+  goToMonth(y,m);
+});
+nextBtn.addEventListener('click', ()=> {
+  let y = view.year, m = view.month + 1;
+  if (m > 11) { m = 0; y += 1; }
+  goToMonth(y,m);
+});
+todayBtn.addEventListener('click', ()=> {
+  const now = new Date();
+  goToMonth(now.getFullYear(), now.getMonth());
+});
+
+// Back to Dashboard functionality
+backToDashboardBtn.addEventListener('click', (e) => {
+  // If the user is holding Ctrl or Cmd, let the default link behavior work
+  if (!e.ctrlKey && !e.metaKey) {
+    e.preventDefault();
+    // Add a smooth transition effect before redirecting
+    document.body.style.opacity = '0.8';
+    setTimeout(() => {
+      window.location.href = 'dashboard.html';
+    }, 200);
+  }
+});
+
+// modal logic
+function openModalForDate(isoDate, focusEventId=null){
+  selectedDateIso = isoDate;
+  modalDateReadable.textContent = formatReadable(isoDate);
+  eventText.value = '';
+  eventNote.value = '';
+  eventColor.value = '#9d4edd';
+  renderEventList(isoDate);
+
+  modalBackdrop.style.display = 'flex';
+
+  // if focusEventId provided, scroll into view after populated
+  if (focusEventId) {
+    setTimeout(()=> {
+      const el = document.querySelector(`[data-event-id="${focusEventId}"]`);
+      if (el) el.scrollIntoView({behavior:'smooth', block:'center'});
+    }, 50);
+  }
+}
+function closeModal(){
+  modalBackdrop.style.display = 'none';
+  selectedDateIso = null;
+}
+
+// add event
+addEventBtn.addEventListener('click', ()=>{
+  const title = eventText.value.trim();
+  if (!title) { alert('Add an event title first'); return; }
+  const note = eventNote.value.trim();
+  const color = eventColor.value || '#9d4edd';
+
+  const events = loadAllEvents();
+  const newEv = { id: Date.now(), date: selectedDateIso, title, note, color, createdAt: Date.now() };
+  events.push(newEv);
+  saveAllEvents(events);
+  renderEventList(selectedDateIso);
+  renderCalendar(view.year, view.month);
+  // clear inputs for quick add
+  eventText.value = '';
+  eventNote.value = '';
+  eventText.focus();
+});
+
+// render list of events in modal
+function renderEventList(isoDate){
+  const evs = eventsForDate(isoDate);
+  eventList.innerHTML = '';
+  if (evs.length === 0){
+    eventList.innerHTML = '<div style="color:rgba(0,0,0,0.45);padding:8px">No events for this date yet.</div>';
+    return;
+  }
+  evs.forEach(ev => {
+    const row = document.createElement('div');
+    row.className = 'event-row';
+    row.style.background = 'rgba(0,0,0,0.03)';
+    row.style.border = '1px solid rgba(0,0,0,0.04)';
+    row.style.marginBottom = '6px';
+    row.style.padding = '6px';
+    row.dataset.eventId = ev.id;
+
+    const left = document.createElement('div');
+    left.style.display='flex';left.style.alignItems='center';left.style.gap='10px';
+
+    const dot = document.createElement('span');
+    dot.style.width='12px';dot.style.height='12px';dot.style.borderRadius='50%';dot.style.display='inline-block';
+    dot.style.background = ev.color || '#9d4edd';
+
+    const txt = document.createElement('div');
+    txt.innerHTML = `<strong style="display:block">${escapeHtml(ev.title)}</strong><small style="color:rgba(0,0,0,0.55)">${escapeHtml(ev.note || '')}</small>`;
+
+    left.appendChild(dot); left.appendChild(txt);
+
+    const controls = document.createElement('div');
+    controls.className = 'event-controls';
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn ghost';
+    editBtn.textContent = 'Edit';
+    editBtn.onclick = () => openEditEvent(ev);
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn danger';
+    delBtn.textContent = 'Delete';
+    delBtn.onclick = () => {
+      if (!confirm('Delete this event?')) return;
+      deleteEvent(ev.id);
+    };
+
+    controls.appendChild(editBtn); controls.appendChild(delBtn);
+
+    row.appendChild(left); row.appendChild(controls);
+    row.setAttribute('data-event-id', ev.id);
+    eventList.appendChild(row);
+  });
+}
+
+// edit flow - populate inputs and replace Add with Save
+let editingEventId = null;
+function openEditEvent(ev){
+  editingEventId = ev.id;
+  eventText.value = ev.title;
+  eventNote.value = ev.note || '';
+  eventColor.value = ev.color || '#9d4edd';
+  addEventBtn.textContent = 'Save';
+  addEventBtn.onclick = saveEditedEvent;
+}
+function saveEditedEvent(){
+  if (!editingEventId) return;
+  const title = eventText.value.trim();
+  if (!title){ alert('Title required'); return; }
+  const events = loadAllEvents();
+  const idx = events.findIndex(x=>x.id === editingEventId);
+  if (idx === -1) return;
+  events[idx].title = title;
+  events[idx].note = eventNote.value.trim();
+  events[idx].color = eventColor.value || '#9d4edd';
+  saveAllEvents(events);
+  // reset
+  editingEventId = null;
+  addEventBtn.textContent = 'Add';
+  addEventBtn.onclick = () => {
+    const titleNow = eventText.value.trim();
+    if (!titleNow) { alert('Add an event title first'); return; }
+    const note = eventNote.value.trim();
+    const color = eventColor.value || '#9d4edd';
+    const eventsNow = loadAllEvents();
+    const newEv = { id: Date.now(), date: selectedDateIso, title: titleNow, note, color, createdAt: Date.now() };
+    eventsNow.push(newEv);
+    saveAllEvents(eventsNow);
+    renderEventList(selectedDateIso);
+    renderCalendar(view.year, view.month);
+    eventText.value=''; eventNote.value='';
+  };
+  renderEventList(selectedDateIso);
+  renderCalendar(view.year, view.month);
+}
+
+// delete event by id
+function deleteEvent(id){
+  let events = loadAllEvents();
+  events = events.filter(e => e.id !== id);
+  saveAllEvents(events);
+  renderEventList(selectedDateIso);
+  renderCalendar(view.year, view.month);
+}
+
+// clear all for date
+clearAllBtn.addEventListener('click', ()=>{
+  if (!confirm('Delete all events for this date?')) return;
+  let events = loadAllEvents();
+  events = events.filter(e => e.date !== selectedDateIso);
+  saveAllEvents(events);
+  renderEventList(selectedDateIso);
+  renderCalendar(view.year, view.month);
+});
+
+// modal close
+closeModalBtn.addEventListener('click', closeModal);
+modalBackdrop.addEventListener('click', (e) => { if (e.target === modalBackdrop) closeModal(); });
+
+// small helper to escape user input in display (we store plain strings though)
+function escapeHtml(str){
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, (s) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+
+// init
+document.addEventListener('DOMContentLoaded', ()=>{
+  // set user name if in localStorage (keeps similarity with other pages)
+  const username = localStorage.getItem('planner_username') || 'You';
+  document.getElementById('userName').textContent = username;
+
+  const now = new Date();
+  goToMonth(now.getFullYear(), now.getMonth());
+
+  // keyboard: Esc closes modal
+  document.addEventListener('keydown', (e)=>{
+    if (e.key === 'Escape' && modalBackdrop.style.display === 'flex') closeModal();
+  });
+});
+</script>
+</body>
+</html>

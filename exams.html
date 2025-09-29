@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Study Planner - Exams List</title>
+<style>
+body, html { margin:0; padding:0; height:100%; font-family: Arial, sans-serif; }
+video.bg-video { position: fixed; top:0; left:0; width:100%; height:100%; object-fit: cover; z-index:-1; }
+.content {
+    background: rgba(255,255,255,0.9);
+    max-width: 800px; margin: 20px auto; padding: 20px; border-radius: 15px; box-shadow:0 0 15px rgba(0,0,0,0.3);
+}
+.header { display:flex; justify-content: space-between; align-items:center; }
+.menu-icon { cursor:pointer; font-size:24px; }
+.sidebar { width:0; position:fixed; top:0; left:0; height:100%; background:#111; overflow-x:hidden; transition:0.3s; padding-top:60px; z-index:10; }
+.sidebar a { padding:10px 20px; text-decoration:none; font-size:20px; color:#fff; display:block; transition:0.3s; }
+.sidebar a:hover { background:#575757; }
+.close-btn { position:absolute; top:10px; right:20px; font-size:36px; }
+input, textarea, button { margin:5px; padding:8px; border-radius:6px; border:none; font-size:16px; }
+button:hover { background:#ddd; cursor:pointer; }
+.back-home { display:inline-block; margin-top:10px; padding:8px 15px; background:#0077b6; color:#fff; border-radius:8px; text-decoration:none; }
+.back-home:hover { background:#023e8a; }
+table { width:100%; border-collapse: collapse; margin-top:20px; }
+th, td { border:1px solid #ccc; padding:8px; text-align:left; }
+th { background:#0077b6; color:#fff; }
+td button { padding:4px 8px; font-size:14px; border-radius:6px; margin-right:4px; }
+</style>
+</head>
+<body>
+
+<video autoplay muted loop class="bg-video">
+    <source src="Page.mp4" type="video/mp4">
+</video>
+
+<div class="header">
+    <div class="user-info">Welcome, <span id="userName"></span>!</div>
+    <div class="menu-icon" onclick="openSidebar()">&#9776;</div>
+</div>
+
+<div id="mySidebar" class="sidebar">
+    <a href="javascript:void(0)" class="close-btn" onclick="closeSidebar()">&times;</a>
+    <a href="dashboard.html">Home</a>
+    <a href="#" onclick="toggleTheme()">Theme</a>
+    <a href="profile.html">Profile</a>
+    <a href="help.html">Help</a>
+</div>
+
+<div class="content">
+    <h1>Exams List</h1>
+    <form class="exam-form" id="examForm">
+        <input type="hidden" id="editIndex">
+        <label for="exam-name">Exam Name:</label>
+        <input type="text" id="exam-name" placeholder="e.g., Final Exam, Mid-term" required>
+
+        <label for="exam-date">Date:</label>
+        <input type="date" id="exam-date" required>
+
+        <label for="exam-syllabus">Syllabus:</label>
+        <textarea id="exam-syllabus" rows="4" placeholder="Enter syllabus details..." required></textarea>
+
+        <button type="submit">Add Exam</button>
+    </form>
+
+    <table id="examsTable">
+        <thead>
+            <tr>
+                <th>Exam Name</th>
+                <th>Date</th>
+                <th>Syllabus</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <a href="dashboard.html" class="back-home">⬅ Back to Home</a>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const username = localStorage.getItem('planner_username') || "Student";
+    document.getElementById('userName').textContent = username;
+
+    let exams = JSON.parse(localStorage.getItem('exams') || "[]");
+
+    const form = document.getElementById('examForm');
+    const tbody = document.querySelector('#examsTable tbody');
+
+    function renderTable(){
+        tbody.innerHTML = '';
+        exams.forEach((exam, index)=>{
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${exam.name}</td>
+                <td>${exam.date}</td>
+                <td>${exam.syllabus}</td>
+                <td>
+                    <button onclick="editExam(${index})">Edit</button>
+                    <button onclick="deleteExam(${index})">Delete</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    window.editExam = (index) => {
+        document.getElementById('exam-name').value = exams[index].name;
+        document.getElementById('exam-date').value = exams[index].date;
+        document.getElementById('exam-syllabus').value = exams[index].syllabus;
+        document.getElementById('editIndex').value = index;
+    }
+
+    window.deleteExam = (index) => {
+        if(confirm("Delete this exam?")){
+            exams.splice(index,1);
+            localStorage.setItem('exams', JSON.stringify(exams));
+            renderTable();
+        }
+    }
+
+    form.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const name = document.getElementById('exam-name').value;
+        const date = document.getElementById('exam-date').value;
+        const syllabus = document.getElementById('exam-syllabus').value;
+        const editIndex = document.getElementById('editIndex').value;
+
+        if(editIndex === ''){
+            exams.push({name, date, syllabus});
+        } else {
+            exams[editIndex] = {name, date, syllabus};
+            document.getElementById('editIndex').value = '';
+        }
+
+        localStorage.setItem('exams', JSON.stringify(exams));
+        form.reset();
+        renderTable();
+    });
+
+    renderTable();
+});
+
+// Sidebar
+function openSidebar(){ document.getElementById("mySidebar").style.width="250px"; }
+function closeSidebar(){ document.getElementById("mySidebar").style.width="0"; }
+function toggleTheme(){ document.body.classList.toggle('dark-theme'); }
+</script>
+
+</body>
+</html>

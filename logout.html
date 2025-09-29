@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logging Out...</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f7f9;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+    <p>Logging you out, please wait...</p>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // This script runs automatically when the page loads.
+            
+            // 1. Clear the user's data from local storage.
+            localStorage.removeItem('planner_username');
+            
+            // 2. Redirect the user back to the login page (index.html).
+            window.location.href = 'index.html';
+        });
+    </script>
+
+</body>
+</html>

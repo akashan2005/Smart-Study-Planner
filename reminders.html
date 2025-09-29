@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Study Planner - Reminders</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    video.bg-video {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      min-width: 100%;
+      min-height: 100%;
+      object-fit: cover;
+      z-index: -1;
+    }
+
+    .content {
+      background: rgba(0,0,0,0.65);
+      padding: 20px;
+      border-radius: 15px;
+      max-width: 600px;
+      margin: 80px auto;
+      text-align: center;
+    }
+
+    .reminder-input-container {
+      margin-bottom: 20px;
+    }
+
+    .reminder-input-container input, .reminder-input-container button {
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      margin: 5px;
+    }
+
+    .reminder-input-container input {
+      width: 60%;
+    }
+
+    .reminder-input-container input[type="datetime-local"] {
+      width: auto;
+    }
+
+    .reminder-input-container button {
+      background: #ff6f61;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    ul#remindersList {
+      list-style: none;
+      padding: 0;
+    }
+
+    ul#remindersList li {
+      background: rgba(255,255,255,0.1);
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .reminder-text.done {
+      text-decoration: line-through;
+      color: #ccc;
+    }
+
+    .actions button {
+      margin-left: 8px;
+      border: none;
+      border-radius: 6px;
+      padding: 5px 10px;
+      cursor: pointer;
+      color: #fff;
+    }
+
+    .edit-btn { background: #0077b6; }
+    .done-btn { background: #4caf50; }
+    .delete-btn { background: #e63946; }
+
+    .back-home {
+      margin-top: 15px;
+      display: inline-block;
+      padding: 8px 15px;
+      background: #0077b6;
+      color: #fff;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+
+    .back-home:hover {
+      background: #023e8a;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Video -->
+  <video autoplay muted loop class="bg-video">
+    <source src="Page.mp4" type="video/mp4">
+  </video>
+
+  <div class="header" id="header">
+    <div class="user-info">Welcome, <span id="userName"></span>!</div>
+    <div class="menu-icon" onclick="openSidebar()">&#9776;</div>
+  </div>
+
+  <div id="mySidebar" class="sidebar">
+    <a href="javascript:void(0)" class="close-btn" onclick="closeSidebar()">&times;</a>
+    <a href="dashboard.html">Home</a>
+    <a href="profile.html">Profile</a>
+    <a href="#" onclick="toggleTheme()">Theme</a>
+    <a href="help.html">Help</a>
+  </div>
+
+  <div class="content" id="content">
+    <h1>My Reminders</h1>
+    <div class="reminder-input-container">
+      <input type="text" id="newReminderInput" placeholder="Add a new reminder...">
+      <input type="datetime-local" id="reminderTime">
+      <button id="addReminderBtn">Add Reminder</button>
+    </div>
+    <ul id="remindersList"></ul>
+
+    <a href="dashboard.html" class="back-home">⬅ Back to Home</a>
+  </div>
+
+  <script>
+    const remindersList = document.getElementById("remindersList");
+    const reminderInput = document.getElementById("newReminderInput");
+    const reminderTime = document.getElementById("reminderTime");
+    const addBtn = document.getElementById("addReminderBtn");
+
+    let reminders = JSON.parse(localStorage.getItem("reminders")) || [];
+
+    function saveReminders() {
+      localStorage.setItem("reminders", JSON.stringify(reminders));
+    }
+
+    function renderReminders() {
+      remindersList.innerHTML = "";
+      reminders.forEach((reminder, index) => {
+        const li = document.createElement("li");
+
+        const span = document.createElement("span");
+        span.textContent = reminder.text + (reminder.time ? ` ⏰ (${new Date(reminder.time).toLocaleString()})` : "");
+        span.className = "reminder-text" + (reminder.done ? " done" : "");
+
+        const actions = document.createElement("div");
+        actions.classList.add("actions");
+
+        // Edit button
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "Edit";
+        editBtn.className = "edit-btn";
+        editBtn.onclick = () => {
+          const newText = prompt("Edit reminder:", reminder.text);
+          if (newText) {
+            reminder.text = newText;
+            saveReminders();
+            renderReminders();
+          }
+        };
+
+        // Done button
+        const doneBtn = document.createElement("button");
+        doneBtn.textContent = "Done";
+        doneBtn.className = "done-btn";
+        doneBtn.onclick = () => {
+          reminder.done = !reminder.done;
+          saveReminders();
+          renderReminders();
+        };
+
+        // Delete button
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Delete";
+        deleteBtn.className = "delete-btn";
+        deleteBtn.onclick = () => {
+          reminders.splice(index, 1);
+          saveReminders();
+          renderReminders();
+        };
+
+        actions.append(editBtn, doneBtn, deleteBtn);
+        li.append(span, actions);
+        remindersList.appendChild(li);
+      });
+    }
+
+    addBtn.addEventListener("click", () => {
+      const text = reminderInput.value.trim();
+      const time = reminderTime.value;
+      if (text) {
+        reminders.push({ text, time, done: false });
+        saveReminders();
+        renderReminders();
+        reminderInput.value = "";
+        reminderTime.value = "";
+      }
+    });
+
+    // Check alarms every minute
+    setInterval(() => {
+      const now = new Date();
+      reminders.forEach(reminder => {
+        if (reminder.time && !reminder.done) {
+          const reminderTime = new Date(reminder.time);
+          if (Math.abs(reminderTime - now) < 60000) {
+            alert("⏰ Reminder: " + reminder.text);
+            reminder.done = true;
+            saveReminders();
+            renderReminders();
+          }
+        }
+      });
+    }, 60000);
+
+    renderReminders();
+  </script>
+
+</body>
+</html>

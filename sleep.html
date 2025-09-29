@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Study Planner - Sleep Tracker</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body, html { margin:0; padding:0; height:100%; font-family: Arial, sans-serif; }
+video.bg-video { position: fixed; top:0; left:0; width:100%; height:100%; object-fit: cover; z-index:-1; }
+.content {
+    background: rgba(255,255,255,0.85);
+    max-width: 700px; margin: 20px auto; padding: 20px; border-radius: 15px; box-shadow:0 0 15px rgba(0,0,0,0.3);
+}
+.header { display:flex; justify-content: space-between; align-items:center; }
+.menu-icon { cursor:pointer; font-size:24px; }
+.sidebar { width:0; position:fixed; top:0; left:0; height:100%; background:#111; overflow-x:hidden; transition:0.3s; padding-top:60px; z-index:10; }
+.sidebar a { padding:10px 20px; text-decoration:none; font-size:20px; color:#fff; display:block; transition:0.3s; }
+.sidebar a:hover { background:#575757; }
+.close-btn { position:absolute; top:10px; right:20px; font-size:36px; }
+.sleep-form input, .sleep-form button { margin:5px; padding:8px; border-radius:6px; border:none; font-size:16px; }
+.sleep-form button:hover { background:#ddd; cursor:pointer; }
+.back-home { display:inline-block; margin-top:10px; padding:8px 15px; background:#0077b6; color:#fff; border-radius:8px; text-decoration:none; }
+.back-home:hover { background:#023e8a; }
+.chart-container { margin-top:20px; }
+</style>
+</head>
+<body>
+
+<video autoplay muted loop class="bg-video">
+    <source src="Page.mp4" type="video/mp4">
+</video>
+
+<div class="header">
+    <div class="user-info">Welcome, <span id="userName"></span>!</div>
+    <div class="menu-icon" onclick="openSidebar()">&#9776;</div>
+</div>
+
+<div id="mySidebar" class="sidebar">
+    <a href="javascript:void(0)" class="close-btn" onclick="closeSidebar()">&times;</a>
+    <a href="dashboard.html">Home</a>
+    <a href="#" onclick="toggleTheme()">Theme</a>
+    <a href="profile.html">Profile</a>
+    <a href="help.html">Help</a>
+</div>
+
+<div class="content">
+    <h1>Sleep Tracker</h1>
+    <div class="sleep-form">
+        <label for="bedtime">Bedtime:</label>
+        <input type="time" id="bedtime">
+        <label for="wakeTime">Wake-up Time:</label>
+        <input type="time" id="wakeTime">
+        <button id="logSleepBtn">Log Sleep</button>
+        <button id="resetSleepBtn">Reset Logs</button>
+    </div>
+
+    <div class="sleep-summary">
+        <h3>Sleep Summary</h3>
+        <p id="lastSleepLog">No sleep logged yet.</p>
+        <p id="totalSleepHours">Total Sleep: 0 hours</p>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="sleepChart"></canvas>
+    </div>
+
+    <a href="dashboard.html" class="back-home">⬅ Back to Home</a>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+    const username = localStorage.getItem('planner_username') || "Student";
+    document.getElementById('userName').textContent = username;
+
+    let sleepData = JSON.parse(localStorage.getItem('sleepData') || "[]");
+    updateSummary();
+    renderChart();
+
+    document.getElementById('logSleepBtn').addEventListener('click', ()=>{
+        const bedtime = document.getElementById('bedtime').value;
+        const wakeTime = document.getElementById('wakeTime').value;
+        if(!bedtime || !wakeTime){ alert("Please select both times"); return; }
+
+        const bed = new Date("1970-01-01T"+bedtime+":00");
+        const wake = new Date("1970-01-01T"+wakeTime+":00");
+        let diff = (wake - bed)/1000/60/60;
+        if(diff < 0) diff += 24;
+
+        const today = new Date().toISOString().split('T')[0];
+        sleepData.push({date: today, hours: diff});
+        localStorage.setItem('sleepData', JSON.stringify(sleepData));
+
+        updateSummary();
+        renderChart();
+    });
+
+    document.getElementById('resetSleepBtn').addEventListener('click', ()=>{
+        sleepData = [];
+        localStorage.removeItem('sleepData');
+        updateSummary();
+        renderChart();
+    });
+
+    function updateSummary(){
+        if(sleepData.length === 0){
+            document.getElementById('lastSleepLog').textContent = "No sleep logged yet.";
+            document.getElementById('totalSleepHours').textContent = "Total Sleep: 0 hours";
+            return;
+        }
+        const last = sleepData[sleepData.length-1];
+        const total = sleepData.reduce((sum, entry)=> sum + entry.hours, 0).toFixed(2);
+        document.getElementById('lastSleepLog').textContent = `Last Sleep: ${last.hours.toFixed(2)} hours (Date: ${last.date})`;
+        document.getElementById('totalSleepHours').textContent = `Total Sleep: ${total} hours`;
+    }
+
+    function renderChart(){
+        const last7Days = [];
+        const barColors = [];
+        const today = new Date();
+        for(let i=6;i>=0;i--){
+            const d = new Date();
+            d.setDate(today.getDate()-i);
+            const dateStr = d.toISOString().split('T')[0];
+            const entry = sleepData.find(e=>e.date===dateStr);
+            const hours = entry ? entry.hours : 0;
+            last7Days.push(hours);
+
+            // Color code
+            if(hours >=7) barColors.push('rgba(0,200,0,0.7)'); // green
+            else if(hours>=5) barColors.push('rgba(255,200,0,0.7)'); // yellow
+            else barColors.push('rgba(255,50,50,0.7)'); // red
+        }
+
+        const ctx = document.getElementById('sleepChart').getContext('2d');
+        if(window.myChart) window.myChart.destroy();
+        window.myChart = new Chart(ctx,{
+            type:'bar',
+            data:{
+                labels:['6 days ago','5','4','3','2','Yesterday','Today'],
+                datasets:[{
+                    label:'Sleep Hours',
+                    data:last7Days,
+                    backgroundColor: barColors
+                }]
+            },
+            options:{ scales:{ y:{ beginAtZero:true, suggestedMax:12 } } }
+        });
+    }
+});
+
+function openSidebar(){ document.getElementById("mySidebar").style.width="250px"; }
+function closeSidebar(){ document.getElementById("mySidebar").style.width="0"; }
+function toggleTheme(){ document.body.classList.toggle('dark-theme'); }
+</script>
+
+</body>
+</html>

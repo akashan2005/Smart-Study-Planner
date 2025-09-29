@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Smart Study Planner - Personal Diary</title>
+<style>
+  body, html {
+    margin: 0; padding: 0;
+    height: 100%; width: 100%;
+    font-family: Arial, sans-serif;
+    overflow-x: hidden;
+    color: white;
+  }
+
+  /* Background video */
+  video.bg-video {
+    position: fixed;
+    right: 0; bottom: 0;
+    min-width: 100%; min-height: 100%;
+    z-index: -1;
+    object-fit: cover;
+    filter: brightness(0.6);
+  }
+
+  .header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 15px; background: rgba(0,0,0,0.6); color: white;
+    z-index: 1; position: relative;
+  }
+
+  .back-btn {
+    color: #fff; 
+    text-decoration: none; 
+    font-weight: bold; 
+    background: rgba(157, 78, 221, 0.8); 
+    padding: 8px 14px; 
+    border-radius: 6px;
+    transition: all 0.2s ease;
+  }
+  .back-btn:hover {
+    background: rgba(157, 78, 221, 1);
+    transform: translateY(-1px);
+  }
+
+  .content {
+    position: relative;
+    height: calc(100% - 60px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .modal {
+    background: rgba(0,0,0,0.5);
+    padding: 30px;
+    border-radius: 15px;
+    color: white;
+    max-width: 700px;
+    width: 90%;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    backdrop-filter: blur(8px);
+    text-align: center;
+  }
+
+  input, textarea {
+    width: 80%;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    margin-top: 10px;
+  }
+
+  textarea {
+    min-height: 150px;
+    resize: vertical;
+  }
+
+  .entries {
+    margin-top: 20px;
+    max-height: 250px;
+    overflow-y: auto;
+  }
+
+  .entry {
+    background: rgba(255,255,255,0.1);
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .entry-info {
+    flex: 1;
+  }
+
+  .entry h3 { margin: 0 0 5px 0; font-size: 16px; }
+  .entry p { margin: 0; font-size: 14px; max-height: 40px; overflow: hidden; text-overflow: ellipsis; }
+
+  .entry button {
+    margin-left: 5px;
+    padding: 5px 10px;
+    font-size: 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+  }
+  .view-btn { background: #4caf50; color: white; }
+  .view-btn:hover { background: #45a049; }
+  .delete-btn { background: #f44336; color: white; }
+  .delete-btn:hover { background: #da190b; }
+
+  button.save-btn {
+    margin-top: 15px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    background: rgba(255, 204, 0, 0.8);
+    color: black;
+    font-weight: bold;
+    transition: 0.3s;
+  }
+  button.save-btn:hover { background: rgba(255, 204, 0, 1); }
+
+  /* View Entry Modal */
+  #viewModal {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.6);
+    color: white;
+    padding: 25px;
+    border-radius: 15px;
+    max-width: 500px;
+    width: 90%;
+    z-index: 10;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  }
+  #viewModal h3 { margin-top: 0; }
+  #viewModal button {
+    margin-top: 15px; padding: 8px 14px; border: none;
+    border-radius: 6px; background: #ff4444; color: white;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+  <video autoplay muted loop class="bg-video">
+    <source src="Page.mp4" type="video/mp4"/>
+  </video>
+
+  <div class="header">
+    <div class="user-info">Welcome, <span id="userName"></span>!</div>
+    <a href="dashboard.html" class="back-btn">← Back to Home</a>
+  </div>
+
+  <div class="content">
+    <!-- PIN Section -->
+    <div id="pin-section" class="modal">
+      <h2 id="pin-title">Set a 4-Digit PIN</h2>
+      <input type="password" id="pin-input" maxlength="4" placeholder="Enter PIN"/>
+      <br>
+      <button id="pin-btn" class="save-btn">Save PIN</button>
+    </div>
+
+    <!-- Diary Section -->
+    <div id="diary-section" class="modal" style="display:none;">
+      <h2>Write Your Diary</h2>
+      <textarea id="diary-text" placeholder="Write your diary entry..."></textarea><br>
+      <button class="save-btn" onclick="saveEntry()">Save Entry</button>
+      <button class="save-btn" onclick="resetPIN()">Reset PIN</button>
+
+      <h2>Your Entries</h2>
+      <div class="entries" id="entries"></div>
+    </div>
+  </div>
+
+  <!-- View Entry Modal -->
+  <div id="viewModal">
+    <h3 id="viewDate"></h3>
+    <p id="viewText"></p>
+    <button onclick="closeViewModal()">Close</button>
+  </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const username = localStorage.getItem("planner_username");
+  if (username) document.getElementById("userName").textContent = username;
+
+  const savedPIN = localStorage.getItem("diary_pin");
+  if (savedPIN) {
+    document.getElementById("pin-title").textContent = "Enter your PIN";
+    document.getElementById("pin-btn").textContent = "Unlock";
+  }
+
+  loadEntries();
+});
+
+// Save/Unlock PIN
+document.getElementById("pin-btn").addEventListener("click", () => {
+  const pin = document.getElementById("pin-input").value;
+  if (pin.length !== 4) { alert("Enter 4-digit PIN"); return; }
+
+  const savedPIN = localStorage.getItem("diary_pin");
+  if (!savedPIN) {
+    localStorage.setItem("diary_pin", pin);
+    alert("PIN registered successfully!");
+    unlockDiary();
+  } else if (savedPIN === pin) {
+    unlockDiary();
+  } else {
+    alert("Incorrect PIN!");
+  }
+});
+
+function unlockDiary() {
+  document.getElementById("pin-section").style.display = "none";
+  document.getElementById("diary-section").style.display = "inline-block";
+}
+
+// Save entry
+function saveEntry() {
+  const text = document.getElementById("diary-text").value.trim();
+  if (!text) { alert("Write something first!"); return; }
+
+  const date = new Date().toLocaleString();
+  const entries = JSON.parse(localStorage.getItem("diary_entries")) || [];
+  entries.unshift({ date, text });
+  localStorage.setItem("diary_entries", JSON.stringify(entries));
+  document.getElementById("diary-text").value = "";
+  loadEntries();
+}
+
+// Load entries
+function loadEntries() {
+  const entries = JSON.parse(localStorage.getItem("diary_entries")) || [];
+  const container = document.getElementById("entries");
+  container.innerHTML = "";
+  entries.forEach((entry, index) => {
+    const div = document.createElement("div");
+    div.className = "entry";
+    div.innerHTML = `
+      <div class="entry-info">
+        <h3>${entry.date}</h3>
+        <p>${entry.text}</p>
+      </div>
+      <div>
+        <button class="view-btn" onclick="viewEntry(${index})">View</button>
+        <button class="delete-btn" onclick="deleteEntry(${index})">Delete</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// View entry modal
+function viewEntry(index) {
+  const entries = JSON.parse(localStorage.getItem("diary_entries")) || [];
+  if (entries[index]) {
+    document.getElementById("viewDate").textContent = entries[index].date;
+    document.getElementById("viewText").textContent = entries[index].text;
+    document.getElementById("viewModal").style.display = "block";
+  }
+}
+
+function closeViewModal() {
+  document.getElementById("viewModal").style.display = "none";
+}
+
+// Delete entry
+function deleteEntry(index) {
+  if (!confirm("Are you sure you want to delete this entry?")) return;
+  const entries = JSON.parse(localStorage.getItem("diary_entries")) || [];
+  entries.splice(index, 1);
+  localStorage.setItem("diary_entries", JSON.stringify(entries));
+  loadEntries();
+}
+
+// Reset PIN
+function resetPIN() {
+  if (confirm("Do you want to reset your PIN?")) {
+    localStorage.removeItem("diary_pin");
+    alert("PIN reset! Please set a new one.");
+    location.reload();
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,611 @@
+/* ======================== */
+/* === Base and General === */
+/* ======================== */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f2f5;
+    color: #333;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-theme {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+}
+
+.content {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.content.dark-theme {
+    background-color: #34495e;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* =========================== */
+/* === Video Background CSS === */
+/* =========================== */
+.background-video-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+}
+
+#backgroundVideo {
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    object-fit: cover;
+}
+
+/* ================== */
+/* === Login Page === */
+/* ================== */
+.login-body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+}
+
+.login-container {
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+    text-align: center;
+    width: 350px;
+}
+
+.login-container h1 {
+    margin-bottom: 20px;
+    font-size: 2em;
+}
+
+.login-container input {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #333;
+}
+
+.login-container button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: #ff6b6b;
+    color: white;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.login-container button:hover {
+    background-color: #e65c5c;
+}
+
+.motivation-line {
+    margin-top: 20px;
+    font-style: italic;
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+/* ==================== */
+/* === Header & Nav === */
+/* ==================== */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background-color: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header.dark-theme {
+    background-color: #34495e;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.header .user-info {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.header .menu-icon {
+    font-size: 1.8em;
+    cursor: pointer;
+}
+
+.sidebar {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 101;
+    top: 0;
+    right: 0;
+    background-color: #f8f9fa;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar.dark-theme {
+    background-color: #3e5060;
+}
+
+.sidebar a {
+    padding: 15px 25px;
+    text-decoration: none;
+    font-size: 1.2em;
+    color: #333;
+    display: block;
+    transition: 0.3s;
+}
+
+.sidebar a:hover {
+    background-color: #ddd;
+}
+
+.sidebar.dark-theme a {
+    color: #ecf0f1;
+}
+
+.sidebar.dark-theme a:hover {
+    background-color: #4a6177;
+}
+
+.sidebar .close-btn {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+}
+
+.back-link {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    color: #667eea;
+    text-decoration: none;
+    font-size: 1em;
+    transition: color 0.3s;
+}
+
+.back-link:hover {
+    color: #5567d2;
+}
+
+.back-link.dark-theme {
+    color: #764ba2;
+}
+
+
+/* ====================== */
+/* === Dashboard Grid === */
+/* ====================== */
+.dashboard-content {
+    padding: 30px;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.grid-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    color: #fff;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.grid-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.grid-item h3 {
+    margin-top: 15px;
+    font-size: 1.2em;
+    text-align: center;
+}
+
+.grid-item .icon {
+    font-size: 3em;
+}
+
+/* Item specific colors and images */
+.tasks { background-image: linear-gradient(135deg, #f5576c 0%, #f093fb 100%); }
+.subjects { background-image: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.calendar { background-image: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
+.diary { background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.focus { background-image: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+.reminders { background-image: linear-gradient(135deg, #fdcbf1 0%, #fdcbf1 1%, #e6dee9 100%); }
+.drawing { background-image: linear-gradient(135deg, #ffc796 0%, #ff6b6b 100%); }
+.friends { background-image: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); }
+.sleep { background-image: linear-gradient(135deg, #b6a1f3 0%, #d5c8fa 100%); }
+.exams { background-image: linear-gradient(135deg, #a8c0ff 0%, #3f2b96 100%); }
+.chat { background-image: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%); }
+.dictionary { background-image: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); }
+.games { background-image: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+
+/* ================== */
+/* === Tasks Page === */
+/* ================== */
+.task-input-container {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.task-input-container input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1em;
+}
+
+.task-input-container button {
+    padding: 12px 25px;
+    margin-left: 10px;
+    background-color: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s;
+}
+
+.task-input-container button:hover {
+    background-color: #5567d2;
+}
+
+.task-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.task-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 10px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    transition: background-color 0.3s;
+}
+
+.task-item.dark-theme {
+    background-color: #4a6177;
+}
+
+.task-item input[type="checkbox"] {
+    margin-right: 15px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.task-item.completed span {
+    text-decoration: line-through;
+    color: #999;
+}
+
+.task-item.completed.dark-theme span {
+    color: #aeb6bf;
+}
+
+.task-item span {
+    flex: 1;
+    font-size: 1.1em;
+}
+
+.task-item .delete-btn {
+    background: none;
+    border: none;
+    color: #ff6b6b;
+    font-size: 1.5em;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.task-item .delete-btn:hover {
+    color: #e65c5c;
+}
+
+/* ==================== */
+/* === Profile Page === */
+/* ==================== */
+.profile-form label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+.profile-form input,
+.profile-form select {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.profile-form button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-top: 20px;
+    background-color: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* ================ */
+/* === Help Page === */
+/* ================ */
+.help-content {
+    text-align: center;
+}
+
+/* =================== */
+/* === Subjects Page === */
+/* =================== */
+textarea {
+    width: calc(100% - 22px);
+    height: 300px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1em;
+    margin-bottom: 15px;
+}
+
+.file-upload-container {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.file-upload-container label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.file-upload-container input {
+    display: block;
+    margin: 0 auto;
+}
+
+/* ================ */
+/* === Games Page === */
+/* ================ */
+.game-list {
+    list-style-type: none;
+    padding: 0;
+    text-align: center;
+}
+
+.game-list li {
+    margin: 10px 0;
+}
+
+.game-list a {
+    text-decoration: none;
+    color: #fff;
+    background-image: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    padding: 15px 25px;
+    border-radius: 8px;
+    display: inline-block;
+    width: 250px;
+    transition: transform 0.3s;
+}
+
+.game-list a:hover {
+    transform: scale(1.05);
+}
+
+/* ================ */
+/* === Exams Page === */
+/* ================ */
+.exam-form label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+.exam-form input,
+.exam-form textarea {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.exam-form button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-top: 20px;
+    background-color: #a8c0ff;
+    color: #3f2b96;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* =================== */
+/* === Calendar Page === */
+/* =================== */
+.calendar-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    text-align: center;
+}
+
+.calendar-day, .calendar-header {
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.calendar-header {
+    font-weight: bold;
+    background-color: #eee;
+}
+
+.calendar-header.dark-theme {
+    background-color: #444;
+}
+
+.calendar-day {
+    background-color: #f8f9fa;
+    cursor: pointer;
+}
+
+.calendar-day.dark-theme {
+    background-color: #4a6177;
+}
+
+.calendar-day.current-day {
+    background-color: #a18cd1;
+    color: white;
+}
+
+.calendar-day.empty {
+    visibility: hidden;
+}
+
+/* ================ */
+/* === Diary Page === */
+/* ================ */
+#diary-lock {
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+}
+
+#pin-input {
+    font-size: 1.2em;
+    padding: 10px;
+    width: 150px;
+    text-align: center;
+    margin-top: 10px;
+}
+
+#unlock-btn {
+    padding: 10px 20px;
+    margin-top: 15px;
+    background-color: #764ba2;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* ================== */
+/* === Drawing Page === */
+/* ================== */
+canvas {
+    border: 1px solid #ccc;
+    display: block;
+    margin: 0 auto;
+    background-color: #fff;
+    cursor: crosshair;
+}
+
+.drawing-controls {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.drawing-controls button {
+    padding: 10px 15px;
+    margin: 5px;
+    cursor: pointer;
+}
+
+/* ==================== */
+/* === Dictionary Page === */
+/* ==================== */
+.dictionary-search {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.dictionary-search input {
+    padding: 10px;
+    width: 60%;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+.dictionary-search button {
+    padding: 10px 20px;
+    margin-left: 10px;
+    background-color: #6a11cb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+#word-meaning {
+    padding: 15px;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+}
